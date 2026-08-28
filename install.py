@@ -122,7 +122,9 @@ def install_hooks(project_root, agent_dir):
             ["git", "-C", str(project_root), "config", "core.hooksPath", ".agent/hooks"],
             check=True, capture_output=True, text=True,
         )
-        log("core.hooksPath -> .agent/hooks  (el hook viaja con el repo)")
+        log("core.hooksPath -> .agent/hooks")
+        log("   OJO: esto vive en .git/config y NO se clona.")
+        log("   En cada clon nuevo: git config core.hooksPath .agent/hooks")
     except (subprocess.CalledProcessError, FileNotFoundError) as exc:
         log("aviso: no se pudo configurar core.hooksPath ({})".format(exc))
 

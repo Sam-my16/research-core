@@ -1,9 +1,14 @@
 #!/bin/sh
-# Instalado por research-core: apunta core.hooksPath a .agent/hooks/
+# Instalado por research-core. Se activa con:
+#     git config core.hooksPath .agent/hooks
 #
-# A diferencia de .git/hooks/, este directorio esta versionado y viaja con el
-# repositorio. Es la capa de cumplimiento mas portable disponible: no depende
-# de que herramienta de IA se este usando, ni de ninguna.
+# A diferencia de .git/hooks/, este ARCHIVO esta versionado y viaja con el
+# repositorio. Pero core.hooksPath vive en .git/config, que NO se clona: en
+# cada clon nuevo hay que volver a ejecutar ese comando o el hook queda
+# presente pero desarmado.
+#
+# Aun con esa salvedad es la capa de cumplimiento mas portable disponible: no
+# depende de que herramienta de IA se este usando, ni de ninguna.
 
 set -e
 

@@ -41,27 +41,30 @@ Frontmatter con las fuentes declaradas:
 ---
 theme: default
 title: "Autor Año — Título corto"
-mdc: true
 sources:
   autor1994: ../../Papers_Markdown/Autor et al. - 1994 - Titulo.md
 ---
 ```
+
+**No pongas `mdc: true`.** Con MDC activado, Slidev interpreta `[4]` como
+sintaxis de componente inline y se come los corchetes: `q = 3[4]` se renderiza
+como `q = 34`, que se lee como treinta y cuatro. Verificado exportando a PDF.
 
 Las rutas son relativas al archivo del deck. El id (`autor1994`) es el que se
 usa en cada cita.
 
 ### 4. Sintaxis de citas
 
-En el cuerpo de la diapositiva, cada afirmación lleva una marca `[^n]`.
+En el cuerpo de la diapositiva, cada afirmación lleva una marca `[n]`.
 En las notas del presentador de **esa misma diapositiva**, una entrada por marca:
 
 ```markdown
-- El estimador Z es suficiente para la covarianza C[^1]
-- La distancia se computa píxel a píxel[^2]
+- El estimador Z es suficiente para la covarianza C[1]
+- La distancia se computa píxel a píxel[2]
 
 <!--
-[^1] autor1994 :: Goodman showed that Z is the maximum likelihood estimator of, and a sufficient statistic for, the covariance C
-[^2] autor1994 :: is computed for each class, and the class associated with the minimum distance is assigned to the pixel
+[1] autor1994 :: Goodman showed that Z is the maximum likelihood estimator of, and a sufficient statistic for, the covariance C
+[2] autor1994 :: is computed for each class, and the class associated with the minimum distance is assigned to the pixel
 -->
 ```
 
@@ -134,6 +137,12 @@ No entregues un deck que no pase. Los avisos se revisan uno por uno: algunos son
 correctos (interpretación propia, texto estructural), otros señalan una
 afirmación que se coló sin respaldo.
 
+**Lo que el verificador no puede comprobar:** que la cita respalde la
+afirmación a la que está pegada. Una cita verdadera bajo una viñeta que dice
+otra cosa pasa limpia. La verificación mecánica cubre la honestidad de la cita;
+la correspondencia entre cita y afirmación la comprobás vos al releer. Por eso
+las citas viven en las notas del presentador, a la vista.
+
 ### 10. Comprobar que el verificador sirve
 
 Una vez por proyecto, corrompé una cita a propósito — cambiá una palabra por
@@ -147,11 +156,25 @@ npx @slidev/cli <destino>/slides.md          # servidor local
 npx @slidev/cli export <destino>/slides.md   # PDF
 ```
 
-La exportación a PDF necesita `playwright-chromium`, que se instala aparte:
+La exportación a PDF necesita el navegador de Playwright. Son **dos** pasos, y
+el segundo se olvida siempre:
 
 ```bash
 npm i -D playwright-chromium
+npx playwright install chromium
 ```
+
+Sin el segundo, el export falla con `Executable doesn't exist`.
+
+**Mirá el deck renderizado antes de darlo por bueno.** Dos defectos reales que
+sólo aparecen al exportar, ambos en la marca de cita pegada a un número:
+
+- `[^4]` (nota al pie de markdown) se renderiza como `^4` — se lee como potencia.
+- `[4]` con `mdc: true` se renderiza como `4` sin corchetes — `q = 3[4]` queda
+  como `q = 34`.
+
+La combinación correcta es `[4]` **sin** `mdc`. Verificar exportando, no
+inspeccionando el HTML: en el HTML las marcas se ven bien en ambos casos.
 
 ## Errores a evitar
 

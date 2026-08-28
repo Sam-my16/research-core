@@ -6,13 +6,13 @@ Contrato (ver workflows/paper-slides.md):
 
   - El deck declara sus fuentes en el frontmatter, bajo `sources:`.
   - Cada afirmacion factual en el cuerpo de una diapositiva lleva una marca
-    `[^N]`.
+    `[N]`.
   - Las notas del presentador de esa misma diapositiva contienen una entrada
     por marca:
 
-        [^1] fuente_id :: <cita textual exacta>
-        [^2] fuente_id :: EQ
-        [^3] fuente_id :: NOT-REPORTED
+        [1] fuente_id :: <cita textual exacta>
+        [2] fuente_id :: EQ
+        [3] fuente_id :: NOT-REPORTED
 
   - Las citas textuales se verifican como substring exacto del archivo fuente,
     tras normalizar espacios, enfasis markdown y comillas tipograficas.
@@ -73,8 +73,11 @@ def normalize(text):
 FRONTMATTER_RE = re.compile(r"\A---\s*\n(.*?)\n---\s*(?:\n|$)", re.DOTALL)
 SLIDE_SEP_RE = re.compile(r"^---\s*$", re.MULTILINE)
 NOTES_RE = re.compile(r"<!--(.*?)-->", re.DOTALL)
-REF_RE = re.compile(r"\[\^([0-9]+)\]")
-ENTRY_RE = re.compile(r"^\s*\[\^([0-9]+)\]\s+(\S+)\s*::\s*(.+?)\s*$")
+# La marca va entre corchetes simples, no como nota al pie de markdown:
+# markdown-it convierte [^1] en un superindice, y "q = 3^4" pasa a leerse
+# como una potencia. Se acepta [^N] solo por compatibilidad con decks viejos.
+REF_RE = re.compile(r"\[\^?([0-9]+)\]")
+ENTRY_RE = re.compile(r"^\s*\[\^?([0-9]+)\]\s+(\S+)\s*::\s*(.+?)\s*$")
 
 EQ_MARKER = "EQ"
 NOT_REPORTED_MARKER = "NOT-REPORTED"
@@ -101,10 +104,32 @@ def parse_sources(frontmatter, deck_path):
     return sources
 
 
+FRONTMATTER_LINE_RE = re.compile(r"^\s*(?:[\w-]+\s*:|-\s)")
+
+
+def looks_like_slide_frontmatter(chunk):
+    """Reconoce el bloque `layout: center` que va entre dos separadores.
+
+    Slidev permite frontmatter por diapositiva; al partir por `---` queda como
+    un trozo suelto. Contarlo como diapositiva desplazaria la numeracion de
+    todos los mensajes de error posteriores.
+    """
+    lines = [ln for ln in chunk.splitlines() if ln.strip()]
+    if not lines or re.search(r"\[\^?[0-9]+\]", chunk):
+        return False
+    return all(FRONTMATTER_LINE_RE.match(ln) for ln in lines)
+
+
 def split_slides(body):
     """Divide el cuerpo del deck en diapositivas por el separador de Slidev."""
-    parts = SLIDE_SEP_RE.split(body)
-    return [(i + 1, p) for i, p in enumerate(parts)]
+    out = []
+    number = 0
+    for part in SLIDE_SEP_RE.split(body):
+        if looks_like_slide_frontmatter(part):
+            continue
+        number += 1
+        out.append((number, part))
+    return out
 
 
 def parse_entries(notes_text):
@@ -144,7 +169,7 @@ def unsupported_bullets(body):
         if not m:
             continue
         text = m.group(1)
-        if "[^" in text or STRUCTURAL_RE.match(text.strip()):
+        if re.search(r"\[\^?[0-9]+\]", text) or STRUCTURAL_RE.match(text.strip()):
             continue
         if len(normalize(text)) < 25:
             continue
@@ -219,18 +244,18 @@ def verify(deck_path):
         entries, duplicates = parse_entries(notes_text)
 
         for num in sorted(duplicates):
-            report.error(slide_no, "[^{}] esta definida mas de una vez".format(num))
+            report.error(slide_no, "[{}] esta definida mas de una vez".format(num))
 
         for num in sorted(refs, key=int):
             if num not in entries:
                 report.error(
                     slide_no,
-                    "[^{}] se usa en la diapositiva pero no tiene entrada en las notas".format(num),
+                    "[{}] se usa en la diapositiva pero no tiene entrada en las notas".format(num),
                 )
 
         for num in sorted(set(entries) - refs, key=int):
             report.warn(
-                slide_no, "[^{}] esta definida en las notas pero no se usa".format(num)
+                slide_no, "[{}] esta definida en las notas pero no se usa".format(num)
             )
 
         for num in sorted(refs & set(entries), key=int):
@@ -238,7 +263,7 @@ def verify(deck_path):
             if source_id not in sources:
                 report.error(
                     slide_no,
-                    "[^{}] cita la fuente '{}', no declarada en el frontmatter".format(num, source_id),
+                    "[{}] cita la fuente '{}', no declarada en el frontmatter".format(num, source_id),
                 )
                 continue
             if source_id not in loaded:
@@ -255,14 +280,14 @@ def verify(deck_path):
             if len(needle) < 15:
                 report.warn(
                     slide_no,
-                    '[^{}] la cita es muy corta para ser evidencia: "{}"'.format(num, payload),
+                    '[{}] la cita es muy corta para ser evidencia: "{}"'.format(num, payload),
                 )
             if needle in loaded[source_id]:
                 report.verified += 1
             else:
                 hint = closest_span(needle, loaded[source_id])
                 msg = (
-                    "[^{}] cita NO encontrada literalmente en '{}':\n"
+                    "[{}] cita NO encontrada literalmente en '{}':\n"
                     '        buscado: "{}"'.format(num, source_id, payload.strip()[:160])
                 )
                 if hint:
@@ -303,12 +328,12 @@ def main():
             print()
             print("ECUACIONES TRANSCRITAS - requieren chequeo humano contra el PDF:")
             for slide, num, sid in report.transcribed:
-                print("  diapositiva {}, [^{}] ({})".format(slide, num, sid))
+                print("  diapositiva {}, [{}] ({})".format(slide, num, sid))
         if report.not_reported:
             print()
             print("MARCADO COMO NO REPORTADO POR EL PAPER:")
             for slide, num, sid in report.not_reported:
-                print("  diapositiva {}, [^{}] ({})".format(slide, num, sid))
+                print("  diapositiva {}, [{}] ({})".format(slide, num, sid))
 
     print()
     print("citas verificadas literalmente : {}".format(report.verified))

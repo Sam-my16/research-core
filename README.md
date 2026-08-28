@@ -44,6 +44,20 @@ Copia el contenido a `<proyecto>/.agent/`, genera `AGENTS.md`, configura
 python install.py /ruta/al/proyecto --update
 ```
 
+`--update` borra y recopia `.agent/`: no edites nada ahí adentro, editá en
+research-core y reinstalá.
+
+### En cada clon nuevo
+
+```bash
+git config core.hooksPath .agent/hooks
+```
+
+**Esto hay que repetirlo en cada clon.** `core.hooksPath` se guarda en
+`.git/config`, que no se clona. El archivo del hook sí viaja con el repo, pero
+queda presente y desarmado hasta que se ejecute ese comando. Comprobalo con
+`git config --get core.hooksPath`.
+
 Se copia en vez de usar submódulo o symlink: el proyecto queda autocontenido —
 el día que entregues la tesis, las reglas viajan adentro— los symlinks en
 Windows requieren Developer Mode, y los submódulos son fricción pura para
@@ -67,11 +81,19 @@ La regla escrita es orientación; el hook es lo que la sostiene. Por eso el
 enforcement va en git y no en el agente: funciona con cualquier herramienta,
 presente o futura, e incluso cuando el que rompe la regla sos vos.
 
+Con una salvedad honesta: el hook hay que armarlo en cada clon (ver arriba).
+No es una garantía que se herede sola.
+
 ### 3. Lo que se afirma de una fuente se verifica contra la fuente
 
-`scripts/verify_citations.py` comprueba que cada afirmación de un deck sobre un
-paper aparezca **textualmente** en el paper. Las citas se validan como
-substring exacto tras normalizar espacios y énfasis markdown.
+`scripts/verify_citations.py` comprueba que cada cita de un deck aparezca
+**textualmente** en el paper, como substring exacto tras normalizar espacios y
+énfasis markdown.
+
+Su límite, explícito: prueba que **la cita es real**, no que respalde la
+afirmación a la que está pegada. Una cita verdadera bajo una viñeta que dice
+otra cosa pasa limpia. Eso lo comprobás vos leyendo las notas — y por eso las
+citas van en las notas del presentador y no escondidas en un archivo aparte.
 
 Las ecuaciones van en un carril aparte, porque la conversión PDF→markdown las
 destroza: se transcriben, se marcan y se listan para chequeo humano. Y

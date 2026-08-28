@@ -6,7 +6,6 @@ info: |
   Verificar con: python .agent/scripts/verify_citations.py slides.md
 class: text-left
 transition: slide-left
-mdc: true
 sources:
   SOURCEID: ../../Papers_Markdown/NOMBRE-DEL-ARCHIVO.md
 ---
@@ -19,20 +18,20 @@ sources:
 
 ## El problema
 
-- Afirmación respaldada[^1]
+- Afirmación respaldada[1]
 
 <!--
-[^1] SOURCEID :: cita textual exacta copiada del .md fuente
+[1] SOURCEID :: cita textual exacta copiada del .md fuente
 -->
 
 ---
 
 ## El aporte central
 
-- Afirmación respaldada[^1]
+- Afirmación respaldada[1]
 
 <!--
-[^1] SOURCEID :: cita textual exacta
+[1] SOURCEID :: cita textual exacta
 -->
 
 ---
@@ -44,37 +43,37 @@ d(Z, \omega_m) = n\left[\ln|C_m| + \mathrm{Tr}\!\left(C_m^{-1} Z\right)\right] -
 $$
 
 <div class="text-sm opacity-60 mt-2">
-Ecuación <strong>transcrita</strong>, no verificada automáticamente[^1].
+Ecuación <strong>transcrita</strong>, no verificada automáticamente[1].
 Contrastar contra el PDF antes de citarla en la tesis.
 </div>
 
 <!--
-[^1] SOURCEID :: EQ
+[1] SOURCEID :: EQ
 -->
 
 ---
 
 ## Qué funcionó
 
-- Resultado positivo con su número citado[^1]
+- Resultado positivo con su número citado[1]
 
 <!--
-[^1] SOURCEID :: cita textual con el número tal como aparece
+[1] SOURCEID :: cita textual con el número tal como aparece
 -->
 
 ---
 
 ## Qué no funcionó
 
-- Limitación explícita del paper[^1]
+- Limitación explícita del paper[1]
 
 <div class="mt-4 text-xs opacity-60">
-El paper no reporta ASPECTO[^2].
+El paper no reporta ASPECTO[2].
 </div>
 
 <!--
-[^1] SOURCEID :: cita textual de la limitación
-[^2] SOURCEID :: NOT-REPORTED
+[1] SOURCEID :: cita textual de la limitación
+[2] SOURCEID :: NOT-REPORTED
 -->
 
 ---

@@ -83,7 +83,7 @@ fuente al lado. Si el texto verdadero aparece ahí con una palabra distinta,
 alguien alteró la cita:
 
 ```
-[^3] cita NO encontrada literalmente en 'lee1994':
+[3] cita NO encontrada literalmente en 'lee1994':
      buscado: "four-look SA R data is slightly better in classification..."
      lo mas parecido en la fuente: "...ok sa r data is much better in classification..."
 ```
