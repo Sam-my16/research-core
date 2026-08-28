@@ -115,3 +115,38 @@ acto de congelar. Prueba limpiada despues.
   son 90-99% salidas embebidas.
 - Dos fuentes en `Papers_Markdown/` siguen rotas (0 bytes).
 - Falta escribir decks para los otros 10 papers.
+
+
+## Correcciones tras revision (commit e893005)
+
+Tres afirmaciones que estaban escritas y eran falsas:
+
+1. **"El hook viaja con el repo"** — falso. `core.hooksPath` se guarda en
+   `.git/config`, que no se clona. Verificado clonando Tesis-Sammy: el clon
+   no tiene hooksPath configurado. El archivo del hook si viaja, pero queda
+   desarmado. Corregido en README, hooks/pre-commit e install.py, y agregado
+   el paso de armado a la documentacion.
+
+2. **Las marcas de cita se rompian al renderizar.** Solo se ve exportando:
+   - `[^n]` (nota al pie de markdown) -> superindice: `q = 3^4`, se lee potencia
+   - `[n]` con `mdc: true` -> pierde corchetes: `q = 3[4]` queda `q = 34`
+   La combinacion correcta es `[n]` sin `mdc`. Probado con las cuatro variantes
+   en un deck de prueba y verificado en PDF.
+
+3. **El verificador prometia mas de lo que hace.** Prueba que la cita es real,
+   no que respalde la afirmacion a la que esta pegada. Limite ahora documentado
+   en README y en workflows/paper-slides.md.
+
+Ademas: `install.py --update` probado (regenera el bloque de AGENTS.md y
+conserva lo escrito afuera), y las diapositivas con frontmatter propio ya no
+desplazan la numeracion de los errores.
+
+## Hallazgos sobre el entorno de la tesis
+
+- **Nombres de archivo demasiado largos.** Clonar Tesis-Sammy falla con
+  `Filename too long` en varios papers: superan el limite de 260 caracteres de
+  Windows. Se arregla con `git config --global core.longpaths true`.
+- **Notebooks: 90-99% del archivo son salidas embebidas.** CAE_CVAE_DTD.ipynb
+  son 955 KB de los cuales 20 KB es codigo. Ver rules/NOTEBOOKS.md.
+- El export de Slidev a PDF necesita DOS pasos: `npm i -D playwright-chromium`
+  y ademas `npx playwright install chromium`.
