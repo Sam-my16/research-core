@@ -1,0 +1,27 @@
+#!/bin/sh
+# Instalado por research-core: apunta core.hooksPath a .agent/hooks/
+#
+# A diferencia de .git/hooks/, este directorio esta versionado y viaja con el
+# repositorio. Es la capa de cumplimiento mas portable disponible: no depende
+# de que herramienta de IA se este usando, ni de ninguna.
+
+set -e
+
+DIR=$(cd "$(dirname "$0")" && pwd)
+CHECK="$DIR/../scripts/check_frozen.py"
+
+if [ ! -f "$CHECK" ]; then
+    echo "aviso: no se encontro check_frozen.py, se omite la verificacion"
+    exit 0
+fi
+
+if command -v python >/dev/null 2>&1; then
+    PY=python
+elif command -v python3 >/dev/null 2>&1; then
+    PY=python3
+else
+    echo "aviso: no hay python disponible, se omite la verificacion de FROZEN"
+    exit 0
+fi
+
+"$PY" "$CHECK"
