@@ -41,15 +41,48 @@ Previsualizar y exportar:
 
 ```bash
 npx @slidev/cli Papers/decks/<id>/slides.md
-npx @slidev/cli export Papers/decks/<id>/slides.md
+python .agent/scripts/export_deck.py Papers/decks/<id>/slides.md
 ```
 
 `npx` evita tener que instalar Slidev por deck. La exportación a PDF necesita
-`playwright-chromium` aparte:
+Playwright, que podés instalar desde el mismo script si te falla:
 
 ```bash
-npm i -D playwright-chromium
+python .agent/scripts/export_deck.py Papers/decks/<id>/slides.md --install-deps
 ```
+
+## Ayudas de sintaxis (opcionales, se instalan una vez)
+
+Cubren **cómo se escribe** una diapositiva. No reemplazan al verificador: el
+contrato de qué puede decir el deck sigue en `workflows/paper-slides.md`.
+
+**Skill de Slidev** — la referencia de sintaxis (layouts, animaciones, columnas,
+resaltado de código, exportación) queda disponible para el agente:
+
+```bash
+npx skills add slidevjs/slidev -g --copy -y -a claude-code -a codex
+```
+
+Es una instalación **por usuario**, no por proyecto: el `-g`. Sin él se
+instalan copias en cada repo y ensucian el árbol de trabajo. Una skill corre con
+los permisos del agente, así que leela antes de usarla.
+
+**Extensión de VS Code** — previsualización del deck al lado del editor:
+
+```bash
+code --install-extension antfu.slidev
+```
+
+**Servidor MCP** — deja que el agente inspeccione el deck que se está
+renderizando:
+
+```bash
+claude mcp add --transport http --scope user slidev http://localhost:3030/__mcp
+```
+
+Sólo conecta mientras el servidor de desarrollo está levantado
+(`npx @slidev/cli <deck>/slides.md`). Con el deck apagado, `claude mcp list`
+muestra `ConnectionRefused`: eso es lo esperado, no una instalación rota.
 
 ## Convención de directorios
 

@@ -16,6 +16,19 @@ ecuaciones, qué funcionó y qué no. **Todo citado del paper, sin inventar nada
 Esto no es una recomendación de estilo: hay un verificador que lo comprueba
 mecánicamente y falla si una cita no aparece literalmente en la fuente.
 
+## La sintaxis no es el trabajo
+
+Hay una skill de Slidev instalada a nivel de usuario: layouts, animaciones,
+columnas, resaltado de código, exportación. Cubre **cómo se escribe** una
+diapositiva y nada más.
+
+Este workflow cubre **qué puede decir**. Son capas distintas y la de acá manda:
+una diapositiva impecable con una afirmación sin cita no pasa el verificador. Si
+el agente ya no gasta turnos peleando con el formato, ese tiempo va a lo que sí
+hay que revisar.
+
+Instalación y detalle operativo en `templates/slidev/README.md`.
+
 ## Procedimiento
 
 ### 0. Auditar la fuente contra el PDF — antes que nada
@@ -203,19 +216,18 @@ fallar no te está protegiendo de nada.
 ## Previsualizar y exportar
 
 ```bash
-npx @slidev/cli <destino>/slides.md          # servidor local
-npx @slidev/cli export <destino>/slides.md   # PDF
+npx @slidev/cli <destino>/slides.md                       # servidor local
+python .agent/scripts/export_deck.py <destino>/slides.md  # PDF
 ```
 
-La exportación a PDF necesita el navegador de Playwright. Son **dos** pasos, y
-el segundo se olvida siempre:
+La exportación a PDF necesita el navegador de Playwright. Si nunca lo instalaste
+y el export falla, podés instalar las dependencias con el mismo script:
 
 ```bash
-npm i -D playwright-chromium
-npx playwright install chromium
+python .agent/scripts/export_deck.py <destino>/slides.md --install-deps
 ```
 
-Sin el segundo, el export falla con `Executable doesn't exist`.
+Sin esas dependencias, el export falla con `Executable doesn't exist`.
 
 **Mirá el deck renderizado antes de darlo por bueno.** Dos defectos reales que
 sólo aparecen al exportar, ambos en la marca de cita pegada a un número:
