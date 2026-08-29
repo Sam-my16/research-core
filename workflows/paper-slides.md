@@ -18,6 +18,30 @@ mecánicamente y falla si una cita no aparece literalmente en la fuente.
 
 ## Procedimiento
 
+### 0. Auditar la fuente contra el PDF — antes que nada
+
+```bash
+python .agent/scripts/ingest_paper.py --check Papers/Papers_Markdown
+```
+
+No empieces si el paper sale `PARCIAL`, `ROTO` o `SCAN`. Reconvertilo primero:
+
+```bash
+python .agent/scripts/ingest_paper.py "Papers/Autor 1994 - Titulo.pdf" -o Papers/Papers_Markdown --force
+```
+
+**Este paso no es burocracia; tapa el único agujero que el verificador de citas
+no puede ver.** El verificador comprueba las citas contra el `.md`. Nadie
+comprueba el `.md` contra el PDF. Si el conversor se comió la sección de
+limitaciones, el deck concluye *"el paper no reporta fallas"* y **todas sus
+citas verifican limpias**, porque salieron de ese archivo.
+
+No es hipotético. Le pasó al primer deck de este repo: markitdown recuperó el
+39% de Lee 1994 y el deck perdió cuatro resultados negativos explícitos, entre
+ellos *"the increase in dimensionality prevents efficient computation"* y
+*"at the expense of a poorer classification of the coastal 'ocean' pixels"*.
+El deck pasó 25/25 igual.
+
 ### 1. Leer la fuente entera antes de escribir nada
 
 No escribas la primera diapositiva hasta haber leído el paper completo. Un deck
@@ -137,11 +161,38 @@ No entregues un deck que no pase. Los avisos se revisan uno por uno: algunos son
 correctos (interpretación propia, texto estructural), otros señalan una
 afirmación que se coló sin respaldo.
 
-**Lo que el verificador no puede comprobar:** que la cita respalde la
-afirmación a la que está pegada. Una cita verdadera bajo una viñeta que dice
-otra cosa pasa limpia. La verificación mecánica cubre la honestidad de la cita;
-la correspondencia entre cita y afirmación la comprobás vos al releer. Por eso
-las citas viven en las notas del presentador, a la vista.
+**Lo que el verificador no puede comprobar**, y son dos cosas distintas:
+
+1. **Que la cita respalde la afirmación a la que está pegada.** Una cita
+   verdadera bajo una viñeta que dice otra cosa pasa limpia. Eso lo comprobás
+   vos al releer — por eso las citas viven en las notas del presentador.
+2. **Que la fuente esté completa.** El verificador compara contra el `.md`, no
+   contra el PDF. Eso lo cubre el paso 0, y sólo el paso 0.
+
+### 9 bis. Elegir el formato de la fuente
+
+Texto plano o markdown, nunca el PDF crudo como fuente citable. No es
+preferencia: el verificador necesita un archivo de texto persistente para hacer
+la comparación de substring. Sin él no queda ninguna garantía mecánica, y
+además leer páginas de PDF como imágenes consume **más** tokens que el texto,
+no menos.
+
+**Cuidado con `pdftotext -layout`.** Preserva la posición horizontal, así que en
+un paper a dos columnas lee las dos a la vez e intercala las líneas:
+
+```
+Commonly used deep learning algorithms include deep belief
+image (usually converted to dB scale), while neglecting phase
+```
+
+Una cita copiada de ahí es una frase que no existe en el paper — y **pasa el
+verificador**, porque sí está en el archivo fuente. Usá `pdftotext` sin
+`-layout` (es lo que hace `ingest_paper.py`): su heurística de orden de lectura
+resuelve bien las columnas.
+
+Las ecuaciones son el caso donde el PDF sí gana, y para eso está el carril `EQ`:
+abrí el PDF en las **páginas de las fórmulas solamente**, transcribí, marcá `EQ`.
+Texto barato para la prosa, PDF dirigido para las fórmulas.
 
 ### 10. Comprobar que el verificador sirve
 

@@ -90,10 +90,21 @@ No es una garantía que se herede sola.
 **textualmente** en el paper, como substring exacto tras normalizar espacios y
 énfasis markdown.
 
-Su límite, explícito: prueba que **la cita es real**, no que respalde la
-afirmación a la que está pegada. Una cita verdadera bajo una viñeta que dice
-otra cosa pasa limpia. Eso lo comprobás vos leyendo las notas — y por eso las
-citas van en las notas del presentador y no escondidas en un archivo aparte.
+Sus dos límites, explícitos:
+
+- Prueba que **la cita es real**, no que respalde la afirmación a la que está
+  pegada. Una cita verdadera bajo una viñeta que dice otra cosa pasa limpia.
+  Eso lo comprobás vos leyendo las notas — y por eso las citas van en las notas
+  del presentador y no escondidas en un archivo aparte.
+- **La verificación vale lo que valga la conversión.** El verificador compara
+  contra el `.md`; nada comparaba el `.md` contra el PDF. Si el conversor se
+  comió la sección de limitaciones, el deck concluye que el paper no reporta
+  fallas y sus citas verifican limpias igual. Eso lo cubre
+  `ingest_paper.py --check`, que corre los dos extractores, se queda con el más
+  completo y marca `PARCIAL` lo que recupere menos del 75% del PDF.
+
+  Medido: markitdown recuperó el **39%** de Lee 1994 y el deck perdió cuatro
+  resultados negativos explícitos, pasando 25/25.
 
 Las ecuaciones van en un carril aparte, porque la conversión PDF→markdown las
 destroza: se transcriben, se marcan y se listan para chequeo humano. Y
