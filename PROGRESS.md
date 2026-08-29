@@ -1,6 +1,6 @@
 # research-core — estado de construccion
 
-Ultima actualizacion: 2026-08-28
+Ultima actualizacion: 2026-08-29
 
 ## Decisiones de diseno (cerradas)
 
@@ -51,8 +51,16 @@ Ultima actualizacion: 2026-08-28
 
 ### Fase C — instalacion
 - [x] Instalar en `Tesis-Sammy`
+- [x] `scripts/export_deck.py` — un solo comando para exportar (research-core 943b476)
+- [x] `--update` de Tesis-Sammy a 943b476: `.agent/scripts` tiene 4 verificadores
 - [ ] Commit en Tesis-Sammy  <- PENDIENTE, requiere decision del usuario
-      (el repo tiene cambios propios sin commitear que no son de esta instalacion)
+      Hay un commit acotado disponible y limpio:
+        Papers/decks/barrachina2023-comparison/  (nuevo)
+        Papers/decks/xie2017/                    (nuevo)
+        Papers/decks/lee1994/lee1994.pdf         (reexportado)
+        .agent/                                  (actualizado a 943b476)
+      NO tocar `codigos/`: los borrados y `codigos/SAR/` son el movimiento de
+      archivos a medio terminar que ya estaba ahi antes de esta instalacion.
 
 ## Notas del entorno (verificadas)
 
@@ -114,7 +122,12 @@ acto de congelar. Prueba limpiada despues.
 - `jupytext` no esta instalado. Ver `rules/NOTEBOOKS.md`: los notebooks actuales
   son 90-99% salidas embebidas.
 - Dos fuentes en `Papers_Markdown/` siguen rotas (0 bytes).
-- Falta escribir decks para los otros 10 papers.
+- Faltan decks para 8 papers (hechos: lee1994, barrachina2023-comparison,
+  xie2017).
+- Archivos sueltos en `Papers/decks/`: `_check_quotes.py` y `_q.txt` son
+  andamiaje de sesion y se pueden borrar. `render_decks.py` se superpone con
+  `export_deck.py` (exporta todos los decks de una vs. uno solo con
+  `--install-deps`): decidir cual sobrevive antes de commitear.
 
 
 ## Correcciones tras revision (commit e893005)
@@ -150,3 +163,38 @@ desplazan la numeracion de los errores.
   son 955 KB de los cuales 20 KB es codigo. Ver rules/NOTEBOOKS.md.
 - El export de Slidev a PDF necesita DOS pasos: `npm i -D playwright-chromium`
   y ademas `npx playwright install chromium`.
+
+
+## Evidencia — decks (2026-08-29)
+
+Tres decks pasan el verificador, exit 0:
+
+    lee1994                    32 citas literales, 1 EQ, 1 NOT-REPORTED, 0 errores
+    barrachina2023-comparison  61 citas literales, 2 EQ, 1 NOT-REPORTED, 0 errores
+    xie2017                    53 citas literales, 6 EQ, 1 NOT-REPORTED, 0 errores
+
+Los avisos son el limite conocido del verificador, no fallas suyas: senalan
+vinetas sin cita. El que importa revisar a mano es **barrachina, diapositiva
+11** — los margenes complejo−real (+0.84 / +0.13 / +0.32 OA) son aritmetica
+derivada de la tabla, no algo que el paper enuncie. El verificador no puede
+verlo: comprueba que una cita sea real, no que respalde la afirmacion.
+
+## Correcciones al diff de Antigravity (commit 943b476)
+
+1. `export_deck.py` llamaba `subprocess.run(["npx", ...])` sin resolver el
+   ejecutable. En Windows los lanzadores de Node son `.cmd` y CreateProcess no
+   agrega la extension: fallaba siempre con "npx no esta disponible" aunque
+   Node estuviera instalado. Y como los dos documentos ya apuntaban al script,
+   la ruta de exportacion documentada quedaba muerta. Resuelto con
+   `shutil.which("npx.cmd")`, no con `shell=True` (las rutas tienen espacios).
+2. `--install-deps` corria `npm i -D` en el cwd, no en el directorio del deck.
+   Corregido con `cwd=`.
+3. Se revirtio el hunk de `adapters/claude.py` que corria `npx skills add`
+   en cada instalacion: la skill es por usuario (`-g`), el adaptador corre por
+   proyecto. Sin `-g` deja `.agents/skills/`, un symlink y `skills-lock.json`
+   dentro del repo del usuario. Ademas iba sin `-y`, con `capture_output=True`
+   y sin `timeout`: un instalador de codigo de terceros, en silencio y colgable.
+4. `CHANGES_FOR_CLAUDE.md` afirma que Slidev publico "un servidor MCP (Skill)".
+   Son dos cosas: `npx skills add` instala una **skill** (archivos de sintaxis);
+   el **MCP** vive en `localhost:3030/__mcp` y solo existe con el dev server
+   levantado.
