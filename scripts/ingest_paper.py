@@ -59,6 +59,45 @@ SCAN_WORDS_PER_PAGE = 20
 MIN_RECOVERY = 0.75
 
 
+# Fraccion minima de n-gramas de un candidato que deben existir en la
+# referencia de orden de lectura. Medido sobre este corpus: las conversiones
+# sanas dan ~100%, las que intercalan columnas caen a 64-77%.
+READING_ORDER_MIN = 0.90
+NGRAM = 6
+
+LIGATURES = {"ﬀ": "ff", "ﬁ": "fi", "ﬂ": "fl",
+             "ﬃ": "ffi", "ﬄ": "ffl"}
+
+
+def _tokens(text):
+    """Normaliza para comparar: ligaduras, marcado, particion silabica."""
+    for lig, plain in LIGATURES.items():
+        text = text.replace(lig, plain)
+    text = re.sub(r"[*_#`|]", " ", text)
+    text = re.sub(r"-\s+", "", text)        # "la- beled" -> "labeled"
+    return re.findall(r"\w+", text.lower())
+
+
+def reading_order_score(candidate, reference):
+    """Fraccion de n-gramas del candidato que existen en la referencia.
+
+    Un PDF a dos columnas mal convertido intercala las lineas de ambas, lo que
+    produce secuencias de palabras que no existen en el paper. Esas secuencias
+    pasan verify_citations.py, porque el verificador compara contra el .md y
+    nadie compara el .md contra el PDF. Esta funcion es ese control faltante.
+
+    Devuelve None si no hay con que comparar.
+    """
+    if not reference:
+        return None
+    ref, cand = _tokens(reference), _tokens(candidate)
+    if len(cand) < NGRAM or len(ref) < NGRAM:
+        return None
+    ref_grams = {tuple(ref[i:i + NGRAM]) for i in range(len(ref) - NGRAM + 1)}
+    cand_grams = {tuple(cand[i:i + NGRAM]) for i in range(len(cand) - NGRAM + 1)}
+    return len(cand_grams & ref_grams) / len(cand_grams)
+
+
 def words(text):
     return len(text.split())
 
@@ -253,8 +292,38 @@ def cmd_convert(pdf, out_dir, force):
         print("Instala poppler (pdftotext) o markitdown.", file=sys.stderr)
         return 2
 
-    candidates.sort(reverse=True)
-    best_words, best_name, best_text = candidates[0]
+    # ELECCION DEL CANDIDATO
+    #
+    # Antes se elegia por cantidad de palabras (`candidates.sort(reverse=True)`).
+    # Eso esta mal: el conteo no mide calidad. markitdown suele producir MAS
+    # palabras que pdftotext —agrega marcado de tablas, encabezados repetidos,
+    # boilerplate del repositorio— y a la vez intercala las columnas de un PDF
+    # a dos columnas, generando frases que NO EXISTEN en el paper.
+    #
+    # Esas frases pasan el verificador de citas, porque si estan en el archivo
+    # fuente. Es el agujero exacto que verify_citations.py no puede ver.
+    #
+    # pdftotext (sin -layout) resuelve bien el orden de lectura, asi que se usa
+    # como referencia: se descarta todo candidato cuyo solapamiento de n-gramas
+    # contra esa referencia caiga por debajo del umbral.
+    reference = next((t for wc, n, t in candidates if n == "pdftotext"), None)
+    usable = []
+    for wc, name, text in candidates:
+        score = reading_order_score(text, reference) if reference else None
+        if score is not None:
+            print("  {:<12} orden de lectura {:.0%}".format(name, score))
+            if score < READING_ORDER_MIN:
+                print("  {:<12} DESCARTADO: intercala columnas".format(name))
+                continue
+        usable.append((wc, name, text))
+
+    if not usable:
+        print("\nERROR: todos los candidatos tienen el orden de lectura roto.",
+              file=sys.stderr)
+        return 2
+
+    usable.sort(reverse=True)
+    best_words, best_name, best_text = usable[0]
 
     if pages and best_words / pages < SCAN_WORDS_PER_PAGE:
         print("\nROTO: el PDF es una imagen escaneada ({} palabras en {} pags)."
