@@ -37,34 +37,21 @@ conversación se pierden en la próxima sesión y no se pueden citar.
 Si decís que algo es reproducible, dejá los inputs fijados y el comando exacto.
 Si hay aleatoriedad, la semilla y la configuración van escritas.
 
-## Modos
+## Alcance del pedido
 
-Declará en cuál estás si no es obvio.
+**Revisión.** Si el usuario pide analizar, comparar o recomendar, inspeccioná
+la evidencia y respondé en la conversación sin crear ni modificar archivos.
+Si queda una duda, proponé la comprobación mínima que la resolvería.
 
-### A — Ejecutar
+**Ejecución.** Si pide crear, corregir o verificar un entregable, seguí hasta
+comprobar el resultado dentro del alcance pedido. Respetá las paradas
+explícitas. Cuando ejecutes una prueba o corrida, registrá el intérprete,
+el entorno y el comando.
 
-El usuario quiere que hagas el trabajo.
+«Revisá y corregí» incluye aplicar y verificar la corrección. «Revisá y
+decime qué corregirías» termina con la recomendación.
 
-- Reformulá el objetivo y los límites antes de arrancar. Si faltan límites,
-  preguntá.
-- Para tareas no triviales, trabajá por etapas con entregable y condición de
-  parada por etapa.
-- No te adelantes a etapas futuras porque "ya que estoy".
-- Registrá cómo ejecutaste las cosas: intérprete, entorno, comando.
-
-**Parada por defecto:** entregado el artefacto de la etapa actual, **pará**.
-
-### B — Revisar
-
-El usuario quiere diagnóstico, crítica o plan, sin cambios.
-
-- Leé antes de opinar. Auditá el código antes de hipotetizar sobre su intención.
-- Ante la duda, proponé el diagnóstico mínimo que la resolvería, en vez de
-  argumentar.
-
-**Parada por defecto:** recomendación con próximos pasos concretos, y **pará**.
-
-### C — Entregar el turno
+## Entregar el turno
 
 La sesión termina, el contexto se satura, o sigue otro agente.
 

@@ -29,7 +29,7 @@ Por etapa:
 - objetivo
 - archivos que se van a tocar
 - cómo se verifica que la etapa está bien
-- condición de parada
+- parada explícita del usuario, si la hay
 
 ## Riesgos
 Qué puede salir mal y qué se hace si sale mal.
@@ -43,9 +43,9 @@ Lo que explícitamente NO se hace en este plan.
 **Criterios verificables.** Si el criterio no se puede comprobar corriendo algo
 o mirando una figura, no es un criterio, es un deseo.
 
-**Etapas con parada.** Cada etapa termina en un punto donde se puede evaluar el
-resultado y decidir seguir o no. Un plan de una sola etapa gigante no es un
-plan.
+**Etapas verificables.** Durante la ejecución, comprobá el resultado de cada
+etapa. Si cumple el criterio y la siguiente etapa forma parte del pedido,
+continuá. Respetá las paradas explícitas del usuario.
 
 **Los artefactos FROZEN se listan explícitamente** como intocables. Se pueden
 leer, copiar y llamar; no modificar.

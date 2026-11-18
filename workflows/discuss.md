@@ -9,8 +9,7 @@ caminos posibles. **No se ejecuta ninguna acción.**
 
 ## Regla
 
-Modo B del contrato: leer, diagnosticar, recomendar, **parar**. No se crean ni
-se modifican archivos. Ni siquiera "uno chiquito para probar".
+Aplicá la regla de **revisión** del [contrato](../rules/CONTRACT.md).
 
 ## Procedimiento
 
