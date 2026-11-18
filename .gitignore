@@ -2,3 +2,7 @@ __pycache__/
 *.pyc
 .DS_Store
 node_modules/
+
+# Notas de trabajo internas, no para el repo publico
+PROGRESS.md
+CHANGES_FOR_CLAUDE.md

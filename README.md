@@ -1,5 +1,8 @@
 # research-core
 
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+![Python](https://img.shields.io/badge/python-stdlib%20only-informational)
+
 Reglas, workflows y verificadores para trabajo de investigación asistido por IA.
 
 Pensado para uso individual en proyectos científicos: una tesis, un paper, una
@@ -121,6 +124,31 @@ python .agent/scripts/check_frozen.py --list
 
 Sólo biblioteca estándar. Sin instalar nada.
 
+## Ejemplo: el verificador atrapando errores reales
+
+Sobre un deck real (Lee et al. 1994) se inyectaron a propósito cuatro
+defectos típicos de un agente que alucina evidencia, y `verify_citations.py`
+los detectó los cuatro, con exit code 1:
+
+| Defecto inyectado | Detectado |
+|---|---|
+| Cifra inventada ("98.7% de exactitud global") sin nada parecido en la fuente | ✅ |
+| Cita real alterada en una palabra (`much` → `slightly`) | ✅ — y el reporte muestra el texto verdadero al lado |
+| Marca `[^9]` usada sin entrada en las notas | ✅ |
+| Cita a una fuente no declarada en el frontmatter | ✅ |
+
+Sobre el deck limpio, el mismo verificador reporta:
+
+```
+citas verificadas literalmente : 25
+ecuaciones transcritas         : 1  (chequeo humano)
+marcado como no reportado      : 1
+errores                        : 0
+RESULTADO: OK
+```
+
+El objetivo no es confiar en el agente: es poder comprobarlo.
+
 ## Probar que los verificadores sirven
 
 Una vez por proyecto, rompé algo a propósito y confirmá que falla: cambiá una
@@ -136,3 +164,7 @@ Sorpresa vienen de
 de Matías Zaldarriaga (IAS Princeton). Esta versión las reduce a lo aplicable a
 trabajo individual, agrega los verificadores mecánicos y el pipeline de papers,
 y saca todo lo específico de la infraestructura de cómputo del IAS.
+
+## Licencia
+
+[MIT](LICENSE).
