@@ -3,36 +3,46 @@
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 ![Python](https://img.shields.io/badge/python-stdlib%20only-informational)
 
-Reglas, workflows y verificadores para trabajo de investigación asistido por IA.
+Un kit de reglas y chequeos automáticos para trabajar con asistentes de IA
+(Claude, Cursor, Copilot, etc.) en un proyecto de investigación — una tesis,
+un paper — sin que se cuele información inventada.
 
-Pensado para uso individual en proyectos científicos: una tesis, un paper, una
-serie de experimentos. Se instala dentro de cada proyecto y viaja con él.
+## El problema que resuelve
 
-## Principio de diseño
+Los asistentes de IA son muy buenos armando resúmenes y presentaciones de
+papers científicos. También inventan citas, cifras y resultados con total
+seguridad, y a simple vista una cita falsa se ve igual que una real.
 
-**El contenido es neutro; los adaptadores son descartables.**
+research-core agrega un paso de verificación automático: antes de confiar en
+algo que el asistente escribió, un script compara cada cita, palabra por
+palabra, contra el paper original.
 
-Ningún archivo de `rules/` o `workflows/` menciona una herramienta de IA. La
-entrada es `AGENTS.md`, el formato que leen Cursor, Codex, Gemini CLI, Copilot,
-Aider, Zed y Windsurf. Claude Code lee `CLAUDE.md`, que acá es una sola línea
-importando `AGENTS.md`.
+## Ejemplo
 
-Cambiar de herramienta significa escribir un adaptador de ~30 líneas, no
-reescribir el contenido. Y en el peor caso, los workflows son markdown plano:
-funcionan diciéndole a cualquier agente *"leé este archivo y seguilo"*, o
-pegándolos a mano en un chat.
+Se tomó una presentación real y se le metieron a propósito cuatro errores
+típicos de un asistente que alucina evidencia. El verificador los detectó
+los cuatro:
 
-## Qué hay
+| Error inyectado | Detectado |
+|---|---|
+| Una cifra inventada, sin nada parecido en la fuente | ✅ |
+| Una cita real con una palabra cambiada | ✅ (y muestra el texto correcto al lado) |
+| Una nota al pie sin su referencia | ✅ |
+| Una cita a una fuente no declarada | ✅ |
 
-```
-rules/        reglas que aplican siempre
-workflows/    instrucciones para tareas concretas
-scripts/      verificadores (sin dependencias externas)
-templates/    AGENTS.md y plantilla de deck Slidev
-hooks/        hook de git que se instala vía core.hooksPath
-adapters/     traducción a cada herramienta
-install.py    instalador
-```
+El objetivo no es confiar en el asistente: es poder comprobarlo.
+
+## Cómo funciona
+
+- Se instala con un solo comando dentro de cualquier proyecto de
+  investigación, sin depender de internet ni de paquetes externos.
+- Define reglas simples (cuándo preguntar, cuándo no inventar, cuándo
+  verificar) que funcionan con cualquier asistente de IA.
+- Protege los resultados ya usados en la tesis: una vez que un número entra
+  al documento final, el archivo que lo generó queda "congelado" y no se
+  puede tocar por error.
+- Verifica automáticamente que las citas, cifras y afirmaciones de cada
+  presentación existan de verdad en el paper original.
 
 ## Instalar
 
@@ -40,130 +50,12 @@ install.py    instalador
 python install.py /ruta/al/proyecto --tools claude
 ```
 
-Copia el contenido a `<proyecto>/.agent/`, genera `AGENTS.md`, configura
-`core.hooksPath` y aplica los adaptadores. Para actualizar más adelante:
-
-```bash
-python install.py /ruta/al/proyecto --update
-```
-
-`--update` borra y recopia `.agent/`: no edites nada ahí adentro, editá en
-research-core y reinstalá.
-
-### En cada clon nuevo
-
-```bash
-git config core.hooksPath .agent/hooks
-```
-
-**Esto hay que repetirlo en cada clon.** `core.hooksPath` se guarda en
-`.git/config`, que no se clona. El archivo del hook sí viaja con el repo, pero
-queda presente y desarmado hasta que se ejecute ese comando. Comprobalo con
-`git config --get core.hooksPath`.
-
-Se copia en vez de usar submódulo o symlink: el proyecto queda autocontenido —
-el día que entregues la tesis, las reglas viajan adentro— los symlinks en
-Windows requieren Developer Mode, y los submódulos son fricción pura para
-trabajo individual. `.agent/VERSION` registra desde qué commit se copió.
-
-## Las tres ideas que lo sostienen
-
-### 1. Nada es confiable por defecto
-
-Un número que está sólo en un notebook de `explorations/` es una observación,
-no un resultado. Para creerle tiene que estar promovido a `docs/RESULTS.md` o
-a `src/`. Ver `rules/LAYOUT.md`.
-
-### 2. Lo que es evidencia se congela
-
-Cuando un número entra en la tesis, el artefacto que lo produjo deja de ser
-código de trabajo. Un archivo `FROZEN` en el directorio lo vuelve inmutable, y
-un hook de git bloquea los commits que lo toquen.
-
-La regla escrita es orientación; el hook es lo que la sostiene. Por eso el
-enforcement va en git y no en el agente: funciona con cualquier herramienta,
-presente o futura, e incluso cuando el que rompe la regla sos vos.
-
-Con una salvedad honesta: el hook hay que armarlo en cada clon (ver arriba).
-No es una garantía que se herede sola.
-
-### 3. Lo que se afirma de una fuente se verifica contra la fuente
-
-`scripts/verify_citations.py` comprueba que cada cita de un deck aparezca
-**textualmente** en el paper, como substring exacto tras normalizar espacios y
-énfasis markdown.
-
-Sus dos límites, explícitos:
-
-- Prueba que **la cita es real**, no que respalde la afirmación a la que está
-  pegada. Una cita verdadera bajo una viñeta que dice otra cosa pasa limpia.
-  Eso lo comprobás vos leyendo las notas — y por eso las citas van en las notas
-  del presentador y no escondidas en un archivo aparte.
-- **La verificación vale lo que valga la conversión.** El verificador compara
-  contra el `.md`; nada comparaba el `.md` contra el PDF. Si el conversor se
-  comió la sección de limitaciones, el deck concluye que el paper no reporta
-  fallas y sus citas verifican limpias igual. Eso lo cubre
-  `ingest_paper.py --check`, que corre los dos extractores, se queda con el más
-  completo y marca `PARCIAL` lo que recupere menos del 75% del PDF.
-
-  Medido: markitdown recuperó el **39%** de Lee 1994 y el deck perdió cuatro
-  resultados negativos explícitos, pasando 25/25.
-
-Las ecuaciones van en un carril aparte, porque la conversión PDF→markdown las
-destroza: se transcriben, se marcan y se listan para chequeo humano. Y
-`NOT-REPORTED` es una salida válida — sin esa escotilla, la sección de
-limitaciones se inventa sola.
-
-## Verificadores
-
-```bash
-python .agent/scripts/verify_citations.py <deck>/slides.md
-python .agent/scripts/ingest_paper.py --check Papers/Papers_Markdown
-python .agent/scripts/check_frozen.py --list
-```
-
-Sólo biblioteca estándar. Sin instalar nada.
-
-## Ejemplo: el verificador atrapando errores reales
-
-Sobre un deck real (Lee et al. 1994) se inyectaron a propósito cuatro
-defectos típicos de un agente que alucina evidencia, y `verify_citations.py`
-los detectó los cuatro, con exit code 1:
-
-| Defecto inyectado | Detectado |
-|---|---|
-| Cifra inventada ("98.7% de exactitud global") sin nada parecido en la fuente | ✅ |
-| Cita real alterada en una palabra (`much` → `slightly`) | ✅ — y el reporte muestra el texto verdadero al lado |
-| Marca `[^9]` usada sin entrada en las notas | ✅ |
-| Cita a una fuente no declarada en el frontmatter | ✅ |
-
-Sobre el deck limpio, el mismo verificador reporta:
-
-```
-citas verificadas literalmente : 25
-ecuaciones transcritas         : 1  (chequeo humano)
-marcado como no reportado      : 1
-errores                        : 0
-RESULTADO: OK
-```
-
-El objetivo no es confiar en el agente: es poder comprobarlo.
-
-## Probar que los verificadores sirven
-
-Una vez por proyecto, rompé algo a propósito y confirmá que falla: cambiá una
-palabra de una cita, o tocá un archivo bajo un directorio congelado.
-
-Un verificador que nunca viste fallar no te está protegiendo de nada.
-
 ## Origen
 
-Las ideas de estados ACTIVE/FROZEN, escalera de confianza, handoffs y el campo
-Sorpresa vienen de
+Las ideas de base vienen de
 [ai-workspace-framework-core](https://github.com/matiaszaldarriaga/ai-workspace-framework-core),
-de Matías Zaldarriaga (IAS Princeton). Esta versión las reduce a lo aplicable a
-trabajo individual, agrega los verificadores mecánicos y el pipeline de papers,
-y saca todo lo específico de la infraestructura de cómputo del IAS.
+de Matías Zaldarriaga (IAS Princeton), adaptadas aquí para trabajo individual
+y con los verificadores automáticos agregados.
 
 ## Licencia
 
