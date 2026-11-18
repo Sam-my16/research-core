@@ -19,11 +19,16 @@ en secciones separadas y rotuladas.
 ## Formato
 
 ```markdown
+---
+tags: [paper]
+---
+
 # <Autor> <Año> — <Título>
 
 **Clave BibTeX:** lee1994classification
 **Fuente:** `Papers/Papers_Markdown/<archivo>.md`
 **Leído:** <fecha>
+**Conceptos relacionados:** [[nombre-del-concepto]], [[otro-concepto]]
 
 ## En una frase
 Qué hace el paper.
@@ -88,3 +93,17 @@ Cuando extraigas o normalices las referencias de un paper:
 ## Salida
 
 `Papers/notas/<id>.md`, con el mismo `<id>` corto y estable que usan los decks.
+
+## Compatibilidad con Obsidian (opcional)
+
+Las notas son markdown plano: abrir `Papers/` como vault en Obsidian (File →
+Open folder as vault) da grafo y backlinks sin configurar nada más.
+
+- **Reusá el nombre exacto de un concepto** en `Conceptos relacionados` cuando
+  vuelva a aparecer en otra nota — `[[wishart-distribution]]`, no
+  `[[distribución wishart]]` en una nota y `[[dist. Wishart]]` en otra. Dos
+  nombres distintos para lo mismo no se conectan en el grafo.
+- No hace falta crear `Papers/notas/` de antemano: aparece sola cuando se
+  guarda la primera nota. Un directorio vacío es ruido (ver `LAYOUT.md`).
+- El grafo es para pensar, no es evidencia: lo que se cita en la tesis sigue
+  siendo lo que pasa por `verify_citations.py`, no un link de Obsidian.
