@@ -4,8 +4,8 @@
 ![Python](https://img.shields.io/badge/python-stdlib%20only-informational)
 
 Un kit de reglas y chequeos automáticos para trabajar con asistentes de IA
-(Claude, Cursor, Copilot, etc.) en un proyecto de investigación — una tesis,
-un paper — sin que se cuele información inventada.
+(Claude, Cursor, Copilot, etc.) en un proyecto de investigación: una tesis,
+un paper, sin información inventada.
 
 ## El problema que resuelve
 
@@ -20,7 +20,7 @@ palabra, contra el paper original.
 ## Ejemplo
 
 Se tomó una presentación real y se le metieron a propósito cuatro errores
-típicos de un asistente que alucina evidencia. El verificador los detectó
+típicos de un asistente que alucina evidencia. El verificador detectó
 los cuatro:
 
 | Error inyectado | Detectado |
